@@ -1,0 +1,56 @@
+{
+    "target": "tictactoe",
+    "target_path": "",
+    "recording_name": "tictactoe",
+    "arch": "x86_64",
+    "image_type": "generic",
+    "bin_type": "extern",
+    "out_of_scope": [],
+    "type": "prog",
+    "target_pages": "tictactoe",
+    "preconditions": [
+        ""
+    ],
+    "command": [
+        {
+            "cmd": "./tictactoe",
+            "type": "async"
+        },
+        {
+            "cmd": "1",
+            "type": "async"
+        },
+        {
+            "cmd": "Alice",
+            "type": "async"
+        },
+        {
+            "cmd": "Bob",
+            "type": "async"
+        },
+        {
+            "cmd": "2",
+            "type": "async"
+        },
+        {
+            "cmd": "3",
+            "type": "async"
+        },
+        {
+            "cmd": "0",
+            "type": "async"
+        },
+        {
+            "cmd": "6",
+            "type": "async"
+        },
+        {
+            "cmd": "/nonexistent/x.sav",
+            "type": "async"
+        },
+        {
+            "cmd": "0",
+            "type": "async"
+        }
+    ]
+}

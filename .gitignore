@@ -1,6 +1,6 @@
 sample-rr-snp
-targets/
-bins/
+targets/*
+bins/*
 vmem_stream.log
 *-rr-snp
 *-rr-nondet.log
