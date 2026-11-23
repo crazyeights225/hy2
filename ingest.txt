@@ -1,0 +1,21 @@
+./htmldoc17 --quiet --charset utf-8 --webpage -f /tmp/out.pdf htmldoc_ref/welcome.md 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/links.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/comment.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-colspan.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-cellpadding.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-valign.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/whitespace.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/color.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/datauri.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/attributes.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-nested.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-simple.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/basic.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/pngsuite.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.epub htmldoc_ref/basic.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-join.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/lt.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-allspan.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/template.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/bmp_load.html 2>&1
+./htmldoc17 --quiet --webpage -f /tmp/out.pdf htmldoc_ref/table-cellspacing.html 2>&1

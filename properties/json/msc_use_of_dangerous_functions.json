@@ -1,0 +1,1 @@
+{"name": "MISC: Use of Dangerous Functions", "severity": "low", "sequences": [{"model": [{"action": "DANGER"}], "confidence": 1}]}

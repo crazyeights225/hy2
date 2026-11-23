@@ -1,0 +1,34 @@
+{
+    "name": "ENV getenv unsafe comparison",
+    "severity": "moderate",
+    "notes": "",
+    "sequences": [
+        {
+        "model": [
+            {
+                "action": "getenv",
+                "as": {"fname": "fname"}
+            },
+            {
+                "action": "RET",
+                "as": {"ret.fname": "ret1_fname", "val": "rval", "addr": "addr"},
+                "cond": [{"ls": "fname", "op": "eq", "rs": "ret1_fname"}, {"ls": "discrete_time", "op": "lte", "rs": 3}]
+            },
+            {
+                "action": "getenv",
+                "as": {"fname": "fname2"}
+            },
+            {
+                "action": "RET",
+                "as": {"ret.fname": "ret2_fname", "val": "rval2"},
+                "cond": [{"ls": "fname2", "op": "eq", "rs": "ret2_fname"}, {"ls": "discrete_time", "op": "lte", "rs": 3}]
+            },
+            {
+                "action": "LOAD",
+                "as": {"addr": "laddr"},
+                "cond": [{"ls": "addr", "op": "eq", "rs": "laddr"}]
+            }
+        ]
+    }
+]
+}

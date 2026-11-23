@@ -1,0 +1,16 @@
+{
+    "name": "CWE 763: Release of Invalid Pointer or Reference",
+    "severity": "moderate",
+    "sequences": [
+        {
+            "model": [
+                {"type": "anti", "action": "ALLOCATE", "as": {"fname": "fname"}},
+                {"type": "anti", "action": "VAR", "as": {"ret.fname": "returned_from", "addr": "faddr"}, "cond": [{"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "discrete_time", "op": "leq", "rs": 3}, {"ls": "faddr", "op": "eq", "rs": "addr"}]},
+                {"action": "VAR", "as": {"addr": "addr"}},
+                {"action": "FREE", "as": {"ptr": "ptr"}, "cond": [
+                    {"ls": "ptr", "op": "eq", "rs": "addr"}
+                ]}
+            ]
+        }
+    ]
+}

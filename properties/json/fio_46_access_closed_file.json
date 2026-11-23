@@ -1,0 +1,51 @@
+{
+    "name": "FIO-46: Do not access a closed file",
+    "severity": "moderate",
+    "notes": "not exhaustive, only convers stdlib functions",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "fclose",
+                    "as": {
+                        "0": "fp"
+                    }
+                },
+                {
+                    "type": "anti",
+                    "action": "OPEN",
+                    "group": "1"
+                },
+                {
+                    "type": "anti",
+                    "action": "RET",
+                    "group": "1",
+                    "as": {
+                        "val": "newfp"
+                    },
+                    "cond": [
+                        {
+                            "ls": "newfp",
+                            "op": "eq",
+                            "rs": "fp"
+                        }
+                    ]
+                },
+                {
+                    "action": "FACCESS",
+                    "as": {
+                        "fp": "fptr"
+                    },
+                    "cond": [
+                        {
+                            "ls": "fp",
+                            "op": "eq",
+                            "rs": "fptr"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1
+        }
+    ]
+}

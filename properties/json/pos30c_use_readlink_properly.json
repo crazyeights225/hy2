@@ -1,0 +1,26 @@
+{
+    "name": "POS30C Use readlink properly",
+    "severity": "moderate",
+    "notes": "",
+    "sequences": [
+        {
+        "model": [
+            {
+                "action": "readlink",
+                "as": {"fname": "fname"}
+            },
+            {
+                "action": "RET",
+                "as": {"addr": "addr", "ret.fname": "returned_from"},
+                "condition": [{"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "discrete_time", "op": "lte", "rs": 3}]
+            },
+            {
+                "type": "anti",
+                "action": "COND",
+                "as": {"ls.val": "lsv"},
+                "condition": [{"ls": "addr", "op": "eq", "rs": "lsv"}, {"ls": "discrete_time", "op": "lte", "rs": 20}]
+            }
+        ]
+        }
+    ]
+}

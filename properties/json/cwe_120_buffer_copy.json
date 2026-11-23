@@ -1,0 +1,76 @@
+{
+    "name": "CWE 120: Buffer Copy",
+    "severity": "high",
+    "notes": "Missing check for condition",
+    "property_descr": "This program copies an input buffer (src) to an output buffer (dest) with checking that the size of src is less than the size of dest, leading to an overflow.",
+    "explain_spec": ["VAR describes the instance of a variable", "COPY describes the operation with VAR as the source"],
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "VAR",
+                    "as": {
+                        "val": "ptr",
+                        "dsource": "dsource"
+                    },
+                    "cond": [
+                        {"ls": "dsource", "op": "nin", "rs": "ret $ALLOCATE"}
+                    ]
+                },
+                {
+                    "action": "COPY",
+                    "as": {
+                        "src": "src",
+                        "dest": "dest"
+                    },
+                    "cond": [
+                        {
+                            "ls": "ptr",
+                            "op": "eq",
+                            "rs": "dest"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1
+        },
+        {
+            "model": [
+                {
+                    "action": "VAR",
+                    "as": {
+                        "addr": "ptr",
+                        "vlabel": "vlabel",
+                        "is_invariant": "src.is_invariant",
+                        "dsource": "dsource"
+                    },
+                    "cond": [
+                        {"ls": "dsource", "op": "nin", "rs": "ret $ALLOCATE"}
+                    ]
+                },
+                {
+                    "action": "COPY",
+                    "as": {
+                        "src": "src",
+                        "dest": "dest",
+                        "src.label": "src.label"
+                    },
+                    "cond": [{"or": [
+                        {
+                            "ls": "ptr",
+                            "op": "eq",
+                            "rs": "src"
+                        },
+                        {
+                            "ls": "vlabel",
+                            "op": "eq",
+                            "rs": "src.label"
+                        }]}
+                    ]
+                }
+            ],
+            "vtypes": {"dest.size": "int", "src.size": "int"},
+            "confidence": 1
+        }
+    ]
+}

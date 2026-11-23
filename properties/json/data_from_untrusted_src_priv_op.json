@@ -1,0 +1,12 @@
+{
+    "name": "Data from Untrusted Source used in Privileged Operation",
+    "severity": "high",
+    "sequences": [
+        {"model": [
+            {"action": "RET", "as": {"val": "envvar.val", "label": "envvar.label", "ret.fname": "returned_from"}, "cond": [{"ls": "returned_from", "op": "eq", "rs": "const.getenv"}]},
+            {"action": "PRIV", "as": {"id": "id"}, "cond": [{"ls": "id", "op": "eq", "rs": 0}]},
+            {"action": "OPEN", "as": {"filename.label": "filelabel", "filename": "filename"}, "cond": [{"or": [{"ls": "filelabel", "op": "like", "rs": "envvar.label"}, {"ls": "filename", "op": "eq", "rs": "envvar.val"}]}]}
+         ]
+        }
+    ]
+}

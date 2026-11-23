@@ -1,0 +1,16 @@
+{
+    "globals": {
+        "x86_64_custom": "/home/crazyeights/Desktop/ubunutuserver.qcow2",
+        "x86_64_custom_snapshot": "srvd1",
+        "property_directory": "properties",
+        "target_directory": "targets",
+        "bin_directory": "bins",
+        "mount_path": "bins",
+        "external_bin_path": "dumps",
+        "max_depth": 10,
+        "show_infeasible": true,
+        "panda_backend": "auto",
+        "docker_image": "hy2-panda",
+        "docker_cmd": "docker"
+    }
+}

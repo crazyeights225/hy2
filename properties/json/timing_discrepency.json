@@ -1,0 +1,14 @@
+{
+    "name": "Timing Discrepency",
+    "severity": "high",
+    "sequences": [
+        {"model": [
+            {"action": "VAR", "as": {"label": "var.label"}, "cond": [{
+                "ls": "var", "op": "in", "rs": "SENSITIVE"
+            }]},
+            {"action": "LOOPHEADER", "as": {"pc": "header.pc"}},
+            {"action": "COND", "as": {"ls.label": "ls", "rs.label": "rs"}, "cond": [{"or": [{"ls": "ls", "op": "like", "rs": "var.label"}, {"ls": "rs", "op": "like", "rs": "var.label"}]}]},
+            {"action": "EDGE", "as": {"jmp.dest": "jmp.dest"}, "cond": [{"ls": "jmp.dest", "op": "eq", "rs": "header.pc"}]}
+        ]}
+    ]
+}

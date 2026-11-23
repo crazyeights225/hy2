@@ -1,0 +1,32 @@
+{
+    "name": "ENV TOCTOU getenv",
+    "severity": "moderate",
+    "notes": "",
+    "sequences": [{
+        "model": [
+            {
+                "action": "getenv", 
+                "as": {"fname": "fname"}
+            },
+            {
+                "action": "RET",
+                "as": {"ret.fname": "returned_from", "addr": "addr"},
+                "cond": [{"ls": "fname", "op": "eq", "rs": "returned_from"}, {"ls": "discrete_time", "op": "leq", "rs": 3}]
+            },
+            {
+                "action": "ALLOC",
+                "as": {"fname": "alloc_fname"}
+            },
+            {
+                "action": "RET",
+                "as": {"ret.fname": "alloc_returned_from", "addr": "aaddr"},
+                "cond": [{"ls": "alloc_fname", "op": "eq", "rs": "alloc_returned_from"}, {"ls": "discrete_time", "op": "leq", "rs": 3}]
+            },
+            {
+                "action": "VAR",
+                "as": {"val": "val"},
+                "cond": [{"ls": "val", "op": "eq", "rs": "aaddr"}]
+            }
+        ]
+    }]
+}

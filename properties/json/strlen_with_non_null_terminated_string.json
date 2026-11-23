@@ -1,0 +1,15 @@
+{
+    "name": "strlen with non-null terminated string",
+    "severity": "moderate",
+    "sequences": [
+        {"model": [
+            {"action": "VAR", "as": {"ls.dsource": "offset.dsource"}, "cond": [{"ls": "offset.dsource", "op": "eq", "rs": "const.strlen"}]}
+        ]},
+        {"model": [
+            {"action": "COPY", "as": {"src.size.dsource": "src.size.dsource"}, "cond": [{"ls": "src.size.dsource", "op": "eq", "rs": "const.strlen"}]}
+        ]},
+        {"model": [
+            {"action": "ALLOCATE", "as": {"size.dsource": "size.dsource"},"cond": [{"ls": "n.dsource", "op": "eq", "rs": "const.strlen"}]}
+        ]}
+    ]
+}

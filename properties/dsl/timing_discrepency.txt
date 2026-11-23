@@ -1,0 +1,15 @@
+---
+VAR
+with dtype = dtype, var.label = label
+where dtype in const.SENSITIVE
+
+LOOPHEADER
+with header.pc = pc
+
+COND
+with ls = ls.label, rs = rs.label
+where ls like var.label OR rs like var.label
+
+EDGE
+with jmp.dest = jmp.dest
+where jmp.dest == header.pc

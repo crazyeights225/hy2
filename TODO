@@ -1,0 +1,22 @@
+- checker.py
+- z3_interface.py
+- cfg_infer.py
+- cfg_merge and model_infer
+
+-------------
+
+- handling libraries
+- z3_interface
+- postprocessing - for results
+- preprocessing - static/symbols + creating new profile
+- web interface
+- static (?)
+- run_queue.py
+
+
+- use of static symbols in model
+- handling libraries
+- preprocessing - static/symbols + creating new profile
+
+-----
+

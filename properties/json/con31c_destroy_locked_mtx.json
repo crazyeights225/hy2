@@ -1,0 +1,26 @@
+{
+    "name": "CON31C Destroy locked mutex",
+    "severity": "moderate",
+    "notes": "",
+    "sequences": [
+        {
+        "model": [
+            {
+                "action": "mtx_lock",
+                "as": {"0": "lock"}
+            },
+            {
+                "type": "anti",
+                "action": "mtx_unlock",
+                "as": {"0": "lock1"},
+                "cond": [{"ls": "lock", "op": "eq", "rs": "lock1"}]
+            },
+            {
+                "action": "mtx_destroy",
+                "as": {"0": "lockd"},
+                "cond": [{"ls": "lock", "op": "eq", "rs": "lockd"}]
+            }
+        ]
+        }
+    ]
+}

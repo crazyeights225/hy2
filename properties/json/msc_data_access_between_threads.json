@@ -1,0 +1,13 @@
+{
+    "name": "MSC: Data Access between Threads",
+    "severity": "low",
+    "comments": "not exhaustive",
+    "sequences": [
+        {
+            "model": [
+                {"action": "pthread_create", "as": {"3": "t1.args"}},
+                {"action": "pthread_create", "as": {"3": "t2.args"}, "cond": [{"ls": "t1.args", "op": "eq", "rs": "t2.args"}]}
+            ]
+        }
+    ]
+}

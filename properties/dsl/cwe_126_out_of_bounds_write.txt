@@ -1,0 +1,19 @@
+Name: CWE 126: Out of Bounds Write
+Severity: High
+---
+ALLOCATE
+with n = size, fname = fname, n.is_constant = size.is_invariant
+
+RET
+with addr = val, returned_from = ret.fname, addr.label = label
+where returned_from == fname
+
+NOT FREE
+with eol_addr = ptr
+where eol_addr == addr
+
+STORE
+with ptr = ls.lhs, base = base, offset = ls.rhs, sop = ls.op, ls.rs.is_constant = ls.rs.is_constant
+where (ptr like addr.label OR base == addr) AND (ls.rs.is_constant == false OR n.is_constant == false)
+if n <= offset
+---

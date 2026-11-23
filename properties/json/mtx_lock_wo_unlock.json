@@ -1,0 +1,13 @@
+{
+    "name": "MTX Lock without Unlock",
+    "severity": "low",
+    "sequences": [
+        {
+            "model": [
+                {"action": "__pthread_mutex_lock", "as": {"0": "mtx"}},
+                {"type": "anti", "action": "__pthread_mutex_unlock", "as": {"0": "unmtx"}, "cond": [{"ls": "mtx", "op": "eq", "rs": "unmtx"}]},
+                {"action": "FINAL", "as": {}}
+            ]
+        }
+    ]
+}

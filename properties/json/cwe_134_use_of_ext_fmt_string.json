@@ -1,0 +1,35 @@
+{
+    "name": "CWE 134: Use of External Format String",
+    "severity": "high",
+    "notes": "Missing check for condition",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "PUT",
+                    "as": {
+                        "val": "addr",
+                        "is_invariant": "arg.is_invariant"
+                    },
+                    "cond": [
+                        {"ls": "arg.is_invariant", "op": "eq", "rs": false}
+                    ]
+                },
+                {
+                    "action": "PRINTF",
+                    "as": {
+                        "format": "fmt"
+                    },
+                    "cond": [
+                        {
+                            "ls": "fmt",
+                            "op": "eq",
+                            "rs": "addr"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "name": "CWE 787: Out-of-Bounds Write Args",
+    "severity": "high",
+    "notes": "Static OOB Write",
+    "sequences": [
+        {
+            "model": [
+                {"action": "STORE", "as": {"ls": "ptr", "ls.rhs": "offset", "rs.size": "val.size", "has_var": "has_var", "size_estimate": "n"},"cond": [{"ls":"has_var", "op": "eq", "rs": true}], "vuln": {"ls": "n", "op": "lt", "rs": {"ls": "offset", "op": "+", "rs": "val.size"}}}
+            ], "confidence": 1
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+{
+    "name": "CWE 401: Missing Release of Memory After Lifetime",
+    "severity": "moderate",
+    "sequences": [
+        {
+            "model": [
+                {"action": "ALLOCATE", "as": {"size": "n", "fname": "fname"}},
+                {"action": "RET", "as": {"val": "addr", "ret.fname": "returned_from", "vlabel": "rvlabel"}, "cond": [{"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "discrete_time", "op": "lte", "rs": 2}]},
+                {"type": "anti", "action": "FREE", "as": {"1": "eol_addr"}, "cond": [{"ls": "eol_addr", "op": "eq", "rs": "addr"}]},
+                {"action": "FINAL", "as": {}}
+            ]
+        }
+    ]
+}

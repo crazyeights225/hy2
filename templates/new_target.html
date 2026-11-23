@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block content %}
+<nav class="crumbs"><a href="/targets">Targets</a><span class="sep">/</span><span>New</span></nav>
+<div class="page-head">
+  <div>
+    <h1>New target</h1>
+    <div class="sub">Creates the target profile and queues symbol resolution.</div>
+  </div>
+</div>
+<form class="card" action="/api/target/new" method="post" style="max-width: 820px;">
+  <div class="card-body">
+    <div class="form-grid">
+      <label class="field">
+        <span class="label">Target name</span>
+        <input class="input" name="name" placeholder="e.g. ls" required>
+      </label>
+      <label class="field">
+        <span class="label">Target path</span>
+        <input class="input mono" name="targetpath" placeholder="e.g. /bin/ls">
+        <span class="help">Leave empty to use the mount path.</span>
+      </label>
+      <label class="field"><span class="label">Architecture</span>
+        <select name="arch" class="select"><option>x86_64</option><option>i386</option></select></label>
+      <label class="field"><span class="label">Guest image</span>
+        <select name="imagetype" class="select"><option>generic</option><option>custom</option></select></label>
+      <label class="field"><span class="label">Binary source</span>
+        <select name="bintype" class="select"><option>extern</option><option>built-in</option></select></label>
+      <label class="field"><span class="label">Target type</span>
+        <select name="targettype" class="select"><option>prog</option><option>lib</option></select></label>
+      <label class="field full">
+        <span class="label">Target pages</span>
+        <input class="input mono" name="targetlib" placeholder="e.g. ls,libc.so.6">
+        <span class="help">Comma-separated names of the modules to analyze.</span>
+      </label>
+      <label class="field">
+        <span class="label">Pre-conditions</span>
+        <textarea class="textarea" name="preconditions" rows="3"></textarea>
+        <span class="help">One per line.</span>
+      </label>
+      <label class="field">
+        <span class="label">Post-conditions</span>
+        <textarea class="textarea" name="postconditions" rows="3"></textarea>
+        <span class="help">One per line.</span>
+      </label>
+    </div>
+  </div>
+  <div class="card-head" style="border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end;">
+    <a class="btn btn-ghost" href="/targets">Cancel</a>
+    <button class="btn btn-primary" type="submit">Create target</button>
+  </div>
+</form>
+{% endblock %}

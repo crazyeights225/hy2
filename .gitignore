@@ -1,0 +1,13 @@
+sample-rr-snp
+targets/
+bins/
+vmem_stream.log
+*-rr-snp
+*-rr-nondet.log
+bins.iso
+.hy2_docker/
+miner.log
+__pycache__/
+.venv/
+thread_model
+thread_model.png

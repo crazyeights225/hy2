@@ -1,0 +1,10 @@
+{
+    "name": "CWE 787: OOB - strncat",
+    "severity": "high",
+    "sequences": [{
+        "model": [
+        {"action": "COPY", "as": {"dest": "dest", "dest.label": "dest.label"}}
+        ]
+        }
+    ]
+}

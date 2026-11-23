@@ -1,0 +1,4 @@
+{
+    "name": "CWE 772: Missing Release of Resource after Lifetime",
+    "severity": "moderate"
+}

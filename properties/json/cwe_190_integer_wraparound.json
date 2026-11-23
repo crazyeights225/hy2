@@ -1,0 +1,19 @@
+{
+    "name": "CWE 190: Integer Wraparound",
+    "severity": "moderate",
+    "notes": "missing a case for operation occurs in condition",
+    "sequences": [
+        {
+            "model": [
+                {"action": "STORE", "as": {"rs.lhs": "var", "rs.rhs": "k", "rs.op": "sop"}, "cond": [
+                    {"ls": "sop", "op": "in", "rs": ["ADD", "SUB", "MUL", "SHL"]}
+                ]}
+            ]
+    },
+    {"model": [
+        {"action": "Put", "as": {"ls.lhs": "var", "ls.rhs": "k", "ls.op": "sop"}, "cond": [
+            {"ls": "sop", "op": "in", "rs": ["ADD", "SUB", "MUL", "SHL"]}
+        ]}
+    ]}
+    ]
+}

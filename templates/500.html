@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card empty" style="max-width: 520px; margin: 40px auto;">
+  <img src="{{ url_for('static', filename='dino2.png') }}" alt="" style="width: 56px; margin-bottom: 12px;">
+  <h3 style="font-size: 18px;">500 · Something went wrong</h3>
+  <p>The server hit an error. Check the terminal running Flask for the traceback.</p>
+  <a class="btn" href="/">Go to overview</a>
+</div>
+{% endblock %}

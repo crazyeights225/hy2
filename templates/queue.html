@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Queue</h1>
+    <div class="sub">Pending analysis tasks, one per line, in the form <code>{"target": "name", "task": "task_name"}</code>.</div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 16px;">
+  <div class="card-head"><h2>Add a target's tasks</h2></div>
+  <div class="card-body">
+    <div class="row" style="flex-wrap: wrap; align-items: flex-end; gap: 12px;">
+      <label class="field" style="min-width: 200px;">
+        <span class="label">Target</span>
+        <select class="select" id="qt-target">
+          {% for t in data.targets %}<option value="{{ t }}">{{ t }}</option>{% endfor %}
+        </select>
+      </label>
+      <div class="row" id="qt-tasks" style="flex-wrap: wrap; gap: 12px;">
+        {% for task in data.tasks %}
+        <label class="row" style="gap: 6px;"><input type="checkbox" value="{{ task }}" checked><span>{{ task }}</span></label>
+        {% endfor %}
+      </div>
+      <button class="btn btn-primary" type="button" onclick="queueTarget()" {{ 'disabled' if not data.targets }}><i class="bi bi-plus-lg"></i>Add to queue</button>
+    </div>
+    <div class="muted small" style="margin-top: 8px;">Tasks are added to the end of the queue in pipeline order. If one is already queued for the same target, it is moved rather than added twice.</div>
+  </div>
+</div>
+
+<form class="card" action="/api/queue/update" method="post">
+  <div class="card-body">
+    <textarea class="textarea" name="queue" id="queue" rows="12" spellcheck="false" placeholder="Queue is empty">{{ data.queue }}</textarea>
+  </div>
+  <div class="card-head" style="border-top: 1px solid var(--border); border-bottom: 0;">
+    <button class="btn btn-danger" type="button" onclick="clearQueue()"><i class="bi bi-trash"></i>Empty queue</button>
+    <button class="btn btn-primary" type="submit">Save queue</button>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+var queueBox = document.getElementById('queue');
+var savedQueue = queueBox.value;
+
+function clearQueue() {
+  if (!confirm('Remove all tasks from the queue?')) return;
+  hy2Get('/api/queue/clear').then(function () {
+    queueBox.value = '';
+    savedQueue = '';
+    hy2Toast('Queue emptied');
+  }).catch(function () { hy2Toast('Failed to empty queue'); });
+}
+
+function queueTarget() {
+  var target = document.getElementById('qt-target').value;
+  var tasks = Array.prototype.map.call(
+    document.querySelectorAll('#qt-tasks input:checked'), function (i) { return i.value; });
+  if (!target) return;
+  if (tasks.length === 0) { hy2Toast('Select at least one task'); return; }
+  // adding reloads the queue from disk, which would drop unsaved edits
+  if (queueBox.value !== savedQueue && !confirm('Discard your unsaved edits to the queue?')) return;
+  hy2Get('/api/queue/push_target', { name: target, tasks: tasks.join(',') }).then(function (r) {
+    if (typeof r.queue === 'string') {
+      queueBox.value = r.queue;
+      savedQueue = r.queue;
+    }
+    hy2Toast(r.status || 'Queued');
+  }).catch(function () { hy2Toast('Failed to add to queue'); });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Security properties</h1>
+    <div class="sub">{{ data|length }} properties defined in the DSL.</div>
+  </div>
+</div>
+<div class="split-left" style="grid-template-columns: 300px minmax(0, 1fr);">
+  <div class="card">
+    <ul class="list" id="plist">
+      {% for t in data|sort(attribute='name') %}
+      <li><button type="button" data-id="{{ t.id }}"><span class="truncate">{{ t.id.replace('_', ' ') }}</span><i class="bi bi-chevron-right chev"></i></button></li>
+      {% endfor %}
+    </ul>
+  </div>
+  <div>
+    <div class="card" id="detail" hidden>
+      <div class="card-head">
+        <h2 id="p-name"></h2>
+        <span class="badge" id="p-sev"></span>
+      </div>
+      <div class="card-body stack">
+        <div id="p-notes-wrap"><div class="section-title">Notes</div><p id="p-notes" class="text-2" style="white-space: pre-wrap;"></p></div>
+        <div><div class="section-title">Definition</div><pre class="codeblock" id="p-def"></pre></div>
+      </div>
+    </div>
+    <div class="card empty" id="placeholder"><i class="bi bi-shield"></i><h3>Select a property</h3><p>Its severity, notes and DSL definition will appear here.</p></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function () {
+  var list = document.getElementById('plist');
+  function load(btn) {
+    list.querySelectorAll('button').forEach(function (b) { b.classList.toggle('active', b === btn); });
+    hy2Get('/api/property', { id: btn.dataset.id }).then(function (r) {
+      var d = r.data, sev = (d.severity || '').toLowerCase();
+      document.getElementById('p-name').textContent = d.name || btn.dataset.id;
+      var s = document.getElementById('p-sev');
+      s.textContent = sev || 'no severity'; s.className = 'badge sev-' + sev;
+      document.getElementById('p-notes').textContent = d.notes || '';
+      document.getElementById('p-notes-wrap').hidden = !d.notes;
+      document.getElementById('p-def').textContent = (d.definition || '').trim();
+      document.getElementById('detail').hidden = false;
+      document.getElementById('placeholder').hidden = true;
+      history.replaceState(null, '', '#' + btn.dataset.id);
+    }).catch(function () { hy2Toast('Could not load property'); });
+  }
+  list.addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) load(b); });
+  var initial = location.hash && list.querySelector('[data-id="' + CSS.escape(location.hash.slice(1)) + '"]');
+  if (initial) load(initial);
+})();
+</script>
+{% endblock %}

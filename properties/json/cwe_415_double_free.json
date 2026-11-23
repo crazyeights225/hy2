@@ -1,0 +1,37 @@
+{
+    "name": "CWE 415: Double Free",
+    "severity": "high",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "FREE",
+                    "as": {"ptr": "ptr", "ptr.label": "ptr.label"}
+                },
+                {
+                    "type": "anti",
+                    "group": "1",
+                    "action": "ALLOC",
+                    "as": {"fname": "fname"}
+                },
+                {
+                    "type": "anti",
+                    "group": "1",
+                    "action": "RET", "as": {"addr": "faddr", "ret.fname": "returned_from"}, "cond": [{"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "faddr", "op": "eq", "rs": "ptr"}]
+                },
+                {
+                    "action": "FREE",
+                    "as": {"ptr": "p1.ptr", "ptr.label": "p1.ptr.label"},
+                    "cond": [
+                        {
+                            "ls": "ptr.label",
+                            "op": "eq",
+                            "rs": "p1.ptr.label"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1
+        }
+    ]
+}

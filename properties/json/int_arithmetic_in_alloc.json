@@ -1,0 +1,15 @@
+{
+    "name": "Int Arithmetic in Alloc",
+    "severity": "low",
+    "sequences": [
+        {"model": [
+            {"action": "STORE", "as": {"rs.op": "rs.op", "name": "var.name", "label": "var.label"}, "cond": [{"ls": "rs.op", "op": "in", "rs": ["Add", "Sub", "Mul", "Shl"]}]},
+            {"action": "ALLOCATE", "as": {"size.dep": "size.dep", "size.label": "size.label"}, "cond": [{"or": [{"ls": "size.label", "op": "like", "rs": "var.label"}, {"ls": "size.dep", "op": "eq", "rs": "var.name"}]}]}
+        ]},
+        {"model": [
+            {"action": "ALLOCATE", "as": {"size.ls.op": "size.ls.op"}, 
+            "cond": [{"ls": "size.ls.op", "op": "in", "rs": ["Add", "Sub", "Mul", "Shl"]}]}
+            ]
+        }
+    ]
+}

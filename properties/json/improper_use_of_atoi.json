@@ -1,0 +1,12 @@
+{
+    "name": "Improper use of Atoi",
+    "severity": "moderate",
+    "sequences": [
+        {
+            "model": [
+                {"action": "ATO", "as": {"buf": "buf", "fname": "fname"}},
+                {"action": "RET", "as": {"ret.fname": "returned_from", "val": "ival", "label": "ret.label"}, "cond": [{"ls": "discrete_time", "op": "lte", "rs": 5}, {"ls": "returned_from", "op": "eq", "rs": "fname"}]}
+            ]
+        }
+    ]
+}

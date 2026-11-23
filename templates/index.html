@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-head">
+  <div class="welcome">
+    <img src="{{ url_for('static', filename='dino2.png') }}" alt="">
+    <div>
+      <h1>Hy2</h1>
+      <div class="sub">Vulnerability analysis · <a href="https://github.com/crazyeights225/hy2"><i class="bi bi-github"></i> GitHub</a></div>
+    </div>
+  </div>
+  <a class="btn btn-primary" href="/new"><i class="bi bi-plus-lg"></i>New target</a>
+</div>
+
+<div class="grid grid-4" style="margin-bottom: 20px;">
+  <a class="card stat clickable" href="/targets" style="color: inherit; text-decoration: none;">
+    <div class="label"><i class="bi bi-file-earmark-binary"></i>Targets</div>
+    <div class="value">{{ data.no_targets }}</div>
+  </a>
+  <div class="card stat">
+    <div class="label"><i class="bi bi-check2-circle"></i>Analyzed</div>
+    <div class="value">{{ data.no_analyzed }}</div>
+  </div>
+  <div class="card stat">
+    <div class="label"><span class="vdot violation"></span>Open violations</div>
+    <div class="value">{{ data.no_violations }}</div>
+  </div>
+  <a class="card stat clickable" href="/properties" style="color: inherit; text-decoration: none;">
+    <div class="label"><i class="bi bi-shield"></i>Security properties</div>
+    <div class="value">{{ data.no_properties }}</div>
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>Recently updated</h2><a class="small" href="/targets">All targets →</a></div>
+  {% if data.recent %}
+  <table class="table">
+    {% for t in data.recent %}
+    <tr class="link" onclick="location.href='/target?name={{ t.id|urlencode }}'">
+      <td><a href="/target?name={{ t.id }}"><strong>{{ t.filename }}</strong></a></td>
+      <td>
+        {% if t.results is none %}<span class="badge">Not analyzed</span>
+        {% else %}
+          {% if t.violations %}<span class="badge v-violation"><span class="dot"></span>{{ t.violations }} violation{{ 's' if t.violations != 1 }}</span>{% endif %}
+          {% if t.review %}<span class="badge v-review"><span class="dot"></span>{{ t.review }} to review</span>{% endif %}
+          {% if not t.violations and not t.review %}<span class="badge b-green"><i class="bi bi-check2"></i>No violations</span>{% endif %}
+        {% endif %}
+      </td>
+      <td class="muted small nowrap" style="text-align: right;">{{ t.updated }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><i class="bi bi-inbox"></i><h3>No targets yet</h3><p><a href="/new">Add your first target</a></p></div>
+  {% endif %}
+</div>
+{% endblock %}

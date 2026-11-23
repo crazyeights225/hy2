@@ -1,0 +1,50 @@
+{
+    "name": "CWE 252: Unchecked Return Value",
+    "severity": "low",
+    "sequences": [
+        {
+            "model": [
+                {"action": "CALLRET",
+                "as": {"fname": "fname"}
+                },
+                {"type": "anti", "action": "COND", "label": "a0", "as": {
+                    "ls.dsource": "cond0.dsource"
+                }, "cond": [{"ls": "cond0.dsource", "op": "eq", "rs": "fname"}]},
+                {
+                    "action": "RET",
+                    "as": {
+                        "val": "ptr",
+                        "ret.fname": "returned_from",
+                        "var.name": "var.var",
+                        "label": "ret.label"
+                    },
+                    "cond": [
+                        {"ls": "returned_from", "op": "eq", "rs": "fname"},
+                        {"ls": "first_only", "op": "eq", "rs": true}
+                    ]
+                },
+                {
+                    "type": "anti",
+                    "action": "COND",
+                    "as": {
+                        "ls.var": "ls.var",
+                        "ls.dsource": "cond.dsource"
+                    }, "cond": [
+                        {"ls": "cond.dsource", "op": "eq", "rs": "returned_from"},
+                        {"ls": "ls.var", "op": "eq", "rs": "var.var"}
+                    ]
+                },
+                {
+                    "action": "VAR",
+                    "as": {
+                        "label": "var.label"
+                    },
+                    "cond": [
+                        {"ls": "var.label", "op": "like", "rs": "ret.label"}, {"ls": "discrete_time", "op": "lt", "rs": 8}
+                    ]
+                }
+            ],
+            "anti_expr": {"ls": "a0", "op": "or", "rs": "a1"}
+        }
+    ]
+}

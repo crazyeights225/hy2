@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% set d = data %}
+{% set q = ('&filter=' ~ d.filter) if d.filter else '' %}
+{% macro source_view(hunks) -%}
+<div class="src">
+  {% for hunk in hunks %}
+    {% if not loop.first %}<div class="gap">⋯</div>{% endif %}
+    {% for ln in hunk %}
+    <div class="ln {{ 'hit' if ln.marks }}"><span class="no">{{ ln.no }}</span><span class="tx">{{ ln.text }}</span><span class="mk">{% for m in ln.marks %}<span class="event-tag">{{ m }}</span>{% endfor %}</span></div>
+    {% endfor %}
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% block content %}
+<nav class="crumbs">
+  <a href="/targets">Targets</a><span class="sep">/</span>
+  <a href="/target?name={{ d.name }}">{{ d.name }}</a><span class="sep">/</span>
+  <span class="mono">{{ d.id[:8] }}</span>
+</nav>
+
+<div class="hero">
+  <div>
+    <h1>{{ d.property }}</h1>
+    {% if d.property_descr %}<p class="text-2" style="margin-top: 6px; max-width: 760px;">{{ d.property_descr }}</p>{% endif %}
+    <div class="meta">
+      <span class="badge badge-lg v-{{ d.verdict }}" title="{{ d.verdict_info.hint }}"><span class="dot"></span>{{ d.verdict_info.label }}</span>
+      <span class="badge badge-lg sev-{{ d.severity }}">{{ d.severity|capitalize }} severity</span>
+      {% if d.filter %}<span class="badge badge-lg b-outline" title="Prev/next only steps through these"><i class="bi bi-funnel"></i>{{ d.filter }} only</span>{% endif %}
+    </div>
+  </div>
+  {% if d.total %}
+  <div class="pager">
+    <a class="btn" href="/result?name={{ d.name }}&id={{ d.prev_id }}{{ q }}" id="prev" title="Previous (←)" {% if not d.prev_id %}disabled{% endif %}><i class="bi bi-chevron-left"></i></a>
+    <span class="pos">{{ d.position }} / {{ d.total }}</span>
+    <a class="btn" href="/result?name={{ d.name }}&id={{ d.next_id }}{{ q }}" id="next" title="Next (→)" {% if not d.next_id %}disabled{% endif %}><i class="bi bi-chevron-right"></i></a>
+  </div>
+  {% endif %}
+</div>
+
+{# ---------- At a glance ---------- #}
+{% set first = (d.steps | selectattr('file') | list | first) if d.steps else None %}
+<div class="card" style="margin-bottom: 20px;">
+  <div class="verdict-banner {{ d.verdict }}">
+    <i class="bi {{ {'violation': 'bi-exclamation-octagon-fill', 'infeasible': 'bi-shield-check', 'review': 'bi-question-circle-fill'}[d.verdict] }}"></i>
+    <div>
+      <strong>{{ {'violation': 'This violation is reachable', 'infeasible': 'Ruled out by the solver', 'review': 'Undecided: needs manual review'}[d.verdict] }}</strong>
+      <span class="text-2">{{ d.verdict_info.hint }}</span>
+    </div>
+  </div>
+  <div class="glance">
+    <div>
+      <div class="k">Location</div>
+      <div class="v mono" title="{% if first %}{{ first.file }}:{{ first.line }}{% endif %}">{% if first %}{{ first.file }}:{{ first.line }}{% else %}<span class="muted">unknown</span>{% endif %}</div>
+    </div>
+    <div>
+      <div class="k">Function</div>
+      <div class="v mono" title="{{ d.functions|join(', ') }}">{% if first and first.func %}{{ first.func }}{% elif d.steps and d.steps[0].func %}{{ d.steps[0].func }}{% elif d.main_func %}{{ d.main_func }}{% else %}<span class="muted">unknown</span>{% endif %}</div>
+    </div>
+    <div>
+      <div class="k">Triggered by inputs</div>
+      <div class="v" title="{{ d.test_cases }}">{{ d.test_cases or '—' }}</div>
+    </div>
+    <div>
+      <div class="k">Solver</div>
+      <div class="v mono">{{ d.solver.solver or d.conclusion or '—' }}{% if d.solver.constraints %} <span class="muted">· {{ d.solver.constraints|length }} constraints</span>{% endif %}</div>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="stack">
+    {# ---------- Where it happens ---------- #}
+    <section class="card">
+      <div class="card-head">
+        <h2>Where it happens</h2>
+        <div class="row">
+          {% if d.has_source %}<a class="btn btn-sm btn-ghost" href="/log?name={{ d.name }}&id={{ d.id }}"><i class="bi bi-file-earmark-code"></i>Full source view</a>{% endif %}
+        </div>
+      </div>
+      {% if d.steps %}
+      <ol class="steps">
+        {% for s in d.steps %}
+        <li class="step">
+          <div class="step-head">
+            <span class="event-tag">{{ s.spec.event }}</span>
+            <span class="step-loc">
+              {% if s.func %}<span class="fn">{{ s.func }}</span>{% endif %}
+              {% if s.file %} · {{ s.file }}{% if s.line %}:{{ s.line }}{% endif %}{% endif %}
+              {% if s.addr %} · <span class="muted">{{ s.addr }}</span>{% endif %}
+            </span>
+          </div>
+          {% if s.spec.conds %}
+          <div class="step-conds">{% for c in s.spec.conds %}<span class="cond">{{ c }}</span>{% endfor %}</div>
+          {% endif %}
+          {% if s.var %}
+          <div class="var-chip"><i class="bi bi-box"></i>{{ s.var.name }} <span class="t">{{ s.var.type }} · {{ s.var.addr }}{% if s.var.ctx and s.var.ctx != 'var' %} · {{ s.var.ctx }}{% endif %}</span></div>
+          {% endif %}
+          {% if s.source %}
+            {{ source_view(s.source) }}
+          {% elif s.code %}
+            <div class="src"><div class="ln hit"><span class="no">{{ s.line or '' }}</span><span class="tx">{{ s.code }}</span><span class="mk"></span></div></div>
+          {% endif %}
+          {% if s.raw %}
+          <details class="disasm">
+            <summary><i class="bi bi-cpu"></i> Disassembly</summary>
+            <pre>{{ s.raw }}</pre>
+          </details>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ol>
+      {% else %}
+      <div class="card-body">
+        <p class="text-2" style="margin: 0;">No source-level location was recorded for this result. The pattern matched in
+        {% for f in d.functions[:6] %}<code>{{ f }}</code>{{ ', ' if not loop.last }}{% endfor %}{% if d.functions|length > 6 %} and {{ d.functions|length - 6 }} more{% endif %}.
+        The execution trace below shows the full sequence.</p>
+      </div>
+      {% endif %}
+    </section>
+
+    {# ---------- Execution trace ---------- #}
+    <section class="card" id="trace">
+      <div class="card-head">
+        <h2>Execution trace <span class="hint">{{ d.trace_len }} events</span></h2>
+        <div class="segmented" id="trace-mode">
+          <button data-mode="key" class="active">Key events</button>
+          <button data-mode="all">Everything</button>
+        </div>
+      </div>
+      <div class="trace card-body flush">
+        {% for g in d.trace %}
+          {% if g.kind == 'trace' %}
+          <details class="trace-fold">
+            <summary><i class="bi bi-chevron-right caret"></i>{{ g.events|length }} block{{ 's' if g.events|length != 1 }} executed</summary>
+            {% for e in g.events %}
+            <div class="tev k-trace"><span class="idx">{{ e.i }}</span><span class="kind">trace</span><span class="body">{{ e.html|safe }}</span></div>
+            {% endfor %}
+          </details>
+          {% else %}
+            {% for e in g.events %}
+            <div class="tev k-{{ g.kind }}"><span class="idx">{{ e.i }}</span><span class="kind">{{ g.kind }}</span><span class="body">{{ e.html|safe }}</span></div>
+            {% endfor %}
+          {% endif %}
+        {% else %}
+          <div class="empty"><i class="bi bi-activity"></i><h3>No trace recorded</h3></div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack">
+    {# ---------- Other matches grouped into this finding ---------- #}
+    {% if d.finding and d.finding.count > 1 %}
+    <section class="card">
+      <div class="card-head">
+        <h2>Paths to this finding <span class="hint">{{ d.finding.count }}</span></h2>
+      </div>
+      <div class="card-body flush">
+        {% set a = d.finding.anchor %}
+        {% if a %}
+        <div class="witness-sink small text-2">All {{ 'start' if d.finding.anchor_kind == 'origin' else 'end' }} at <span class="mono">{% if a.file %}{{ a.file }}:{{ a.line }}{% else %}{{ a.addr }}{% endif %}</span>{% if a.func %} in <span class="mono">{{ a.func }}</span>{% endif %}</div>
+        {% endif %}
+        <div class="witnesses">
+        {% for w in d.finding.witnesses %}
+          {% set o = w.loc %}
+          <a class="witness{% if w.id == d.id %} current{% endif %}" href="/result?name={{ d.name }}&id={{ w.id }}"
+             {% if loop.index > 25 %}data-overflow hidden{% endif %}>
+            <span class="vdot {{ w.verdict }}" title="{{ w.conclusion or 'undecided' }}"></span>
+            <span class="wloc mono truncate">{% if o %}{% if o.file %}{{ o.file }}:{{ o.line }}{% else %}{{ o.addr }}{% endif %}{% if o.func %} · {{ o.func }}{% endif %}{% else %}<span class="muted">unknown {{ d.finding.other_kind }}</span>{% endif %}</span>
+            <span class="wid mono">{{ w.id[:8] }}{% if w.id == d.finding.rep_id %} <i class="bi bi-star-fill" title="Representative"></i>{% endif %}</span>
+            {% if w.test_cases and w.test_cases != 'all' %}<span class="wtc small text-2 truncate" title="{{ w.test_cases }}">{{ w.test_cases }}</span>{% endif %}
+          </a>
+        {% endfor %}
+        </div>
+        {% if d.finding.witnesses|length > 25 %}
+        <div class="more-row" style="padding-left: 18px;"><button class="btn btn-sm" onclick="this.parentNode.previousElementSibling.querySelectorAll('[data-overflow]').forEach(e => e.hidden = false); this.parentNode.remove();">Show all {{ d.finding.witnesses|length }}</button></div>
+        {% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    {# ---------- Matched variables ---------- #}
+    <section class="card">
+      <div class="card-head"><h2>Matched variables</h2></div>
+      <div class="card-body">
+        {% if d.variables %}
+        <table class="kv">
+          {% for v in d.variables %}
+            {% if v.value is iterable and v.value is not string %}
+            <tr><td colspan="2" style="text-align: left;">{{ v.entry }} <span class="muted">({{ v.value|length }})</span>
+              <div class="chips">{% for x in v.value %}<span class="cond">{{ x }}</span>{% endfor %}</div></td></tr>
+            {% else %}
+            <tr><td>{{ v.entry }}</td><td>{{ v.value }}</td></tr>
+            {% endif %}
+          {% endfor %}
+        </table>
+        {% else %}<span class="muted">None</span>{% endif %}
+      </div>
+    </section>
+
+    {# ---------- Solver ---------- #}
+    <section class="card">
+      <div class="card-head">
+        <h2>Solver</h2>
+        {% if d.solver.solver %}<span class="badge v-{{ 'violation' if d.solver.solver == 'sat' else ('infeasible' if d.solver.solver == 'unsat' else 'review') }}">{{ d.solver.solver }}</span>{% endif %}
+      </div>
+      <div class="card-body stack">
+        {% if d.solver.constraints %}
+        <div>
+          <div class="section-title">Path constraints</div>
+          <ul class="constraints">{% for c in d.solver.constraints %}<li>{{ c }}</li>{% endfor %}</ul>
+        </div>
+        {% endif %}
+        {% if d.solver.witness %}
+        <div>
+          <div class="section-title" title="A concrete assignment that satisfies every constraint">Witness</div>
+          <table class="kv">{% for k, v in d.solver.witness %}<tr><td>{{ k }}</td><td>{{ v }}</td></tr>{% endfor %}</table>
+        </div>
+        {% endif %}
+        {% if d.solver.diagnostics %}
+        <details class="collapsible">
+          <summary class="small text-2"><i class="bi bi-chevron-right caret"></i>{{ d.solver.diagnostics|length }} analyzer note{{ 's' if d.solver.diagnostics|length != 1 }}</summary>
+          <div style="margin-top: 8px;">
+            {% for n in d.solver.diagnostics %}
+            <div class="diag {{ n.level }}"><i class="bi {{ 'bi-x-circle' if n.level == 'error' else 'bi-exclamation-triangle' }}"></i><span>{{ n.text }}</span>{% if n.count > 1 %}<span class="n">×{{ n.count }}</span>{% endif %}</div>
+            {% endfor %}
+          </div>
+        </details>
+        {% endif %}
+        {% if not d.solver.constraints and not d.solver.solver and d.solver.raw %}
+        <pre class="codeblock">{{ d.solver.raw }}</pre>
+        {% elif not d.solver.raw %}
+        <span class="muted">No solver output recorded.</span>
+        {% endif %}
+      </div>
+    </section>
+
+    {# ---------- Property pattern ---------- #}
+    {% if d.spec %}
+    <section class="card">
+      <div class="card-head"><h2>Property pattern</h2></div>
+      <div class="card-body">
+        <ol class="constraints" style="list-style: none;">
+          {% for p in d.spec %}
+          <li><strong>{{ p.event }}</strong>({{ p.args|join(', ') }}){% for c in p.conds %}<br><span class="muted">where</span> {{ c }}{% endfor %}</li>
+          {% endfor %}
+        </ol>
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="card">
+      <div class="card-body small text-2">
+        <div class="row" style="justify-content: space-between;"><span>Result ID</span><code>{{ d.id }}</code></div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<div class="footer-hint"><span><kbd>←</kbd> <kbd>→</kbd> previous / next</span><span><kbd>t</kbd> toggle full trace</span><span><kbd>Esc</kbd> back to {{ d.name }}</span></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var folds = document.querySelectorAll('.trace-fold');
+  var modeBtns = document.querySelectorAll('#trace-mode [data-mode]');
+  function setMode(mode) {
+    folds.forEach(function (f) { f.open = mode === 'all'; });
+    modeBtns.forEach(function (b) { b.classList.toggle('active', b.dataset.mode === mode); });
+  }
+  modeBtns.forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.mode); }); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.matches('input, textarea, select') || e.metaKey || e.ctrlKey || e.altKey) return;
+    var prev = document.getElementById('prev'), next = document.getElementById('next');
+    if ((e.key === 'ArrowLeft' || e.key === 'k') && prev && !prev.hasAttribute('disabled')) location.href = prev.href;
+    if ((e.key === 'ArrowRight' || e.key === 'j') && next && !next.hasAttribute('disabled')) location.href = next.href;
+    if (e.key === 't') { var all = document.querySelector('#trace-mode [data-mode="all"]'); setMode(all.classList.contains('active') ? 'key' : 'all'); }
+    if (e.key === 'Escape') location.href = '/target?name={{ d.name|urlencode }}';
+  });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% if title %}{{ title }} · {% endif %}Hy2</title>
+<link rel="icon" href="{{ url_for('static', filename='dino2.png') }}">
+<script>
+  // Apply a saved theme before paint to avoid a flash
+  try { var t = localStorage.getItem('hy2-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+</script>
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/bootstrap-icons.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/hy2.css') }}">
+{% block styles %}{% endblock %}
+</head>
+<body>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <a class="brand" href="/"><img src="{{ url_for('static', filename='dino2.png') }}" alt=""><span>Hy2</span></a>
+    <nav class="nav" aria-label="Main">
+      <a href="/" class="{{ 'active' if nav_active == 'home' }}">Overview</a>
+      <a href="/targets" class="{{ 'active' if nav_active in ('targets', 'target', 'result', 'config', 'query', 'log', 'new') }}">Targets</a>
+      <a href="/properties" class="{{ 'active' if nav_active == 'properties' }}">Properties</a>
+      <a href="/queue" class="{{ 'active' if nav_active == 'queue' }}">Queue</a>
+      <a href="/settings" class="{{ 'active' if nav_active == 'settings' }}">Settings</a>
+    </nav>
+    <button id="theme-toggle" class="icon-btn" type="button" onclick="hy2ToggleTheme()" title="Toggle theme" aria-label="Toggle theme"><i class="bi bi-moon"></i></button>
+  </div>
+</header>
+
+<main class="container page">
+  {% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+      <div class="alert {{ 'alert-err' if 'rror' in message else 'alert-ok' }}"><i class="bi {{ 'bi-exclamation-circle' if 'rror' in message else 'bi-check-circle' }}"></i><div>{{ message }}</div></div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script src="{{ url_for('static', filename='js/hy2.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

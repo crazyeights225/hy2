@@ -1,0 +1,17 @@
+{
+    "name": "Information Leak",
+    "severity": "high",
+    "sequences": [
+        {"model": [
+            {"action": "STORE", "as": {"dsource": "arg.dsource", "dtype": "arg.dtype", "label": "arg.label"}, "cond": [{"ls": "arg.dsource", "op": "in", "rs": ["arg1", "arg2", "arg3", "arg4", "arg5", "arg6", ""]}, {"ls": "arg.dtype", "op": "in", "rs": ["struct url *"]}]},
+            {"action": "LEAK", "as": {"buf": "buf", "buf.label": "buf.label"}, "cond": [{"ls": "buf.label", "op": "like", "rs": "arg.label"}]}
+        ]
+        },
+        {"model": [
+            {"action": "STORE", "as": {"dsource": "arg.dsource", "dtype": "arg.dtype", "label": "arg.label"}, "cond": [{"ls": "arg.dsource", "op": "in", "rs": ["arg1", "arg2", "arg3", "arg4", "arg5", "arg6", ""]}, {"ls": "arg.dtype", "op": "in", "rs": ["struct url *"]}]},
+            {"action": "PUT", "as": {"label": "var.label"}, "cond": [{"ls": "var.label", "op": "like", "rs": "arg.label"}]},
+            {"action": "LEAK", "as": {"buf": "buf", "buf.label": "buf.label"}, "cond": [{"ls": "buf.label", "op": "like", "rs": "var.label"}]}
+        ]
+        }
+    ]
+}

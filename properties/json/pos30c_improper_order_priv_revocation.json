@@ -1,0 +1,15 @@
+{
+    "name": "POS30C Improper Order Privilege Revocation",
+    "severity": "moderate",
+    "notes": "",
+    "sequences": [{
+        "model":
+        [
+            {"action": "getuid"},
+            {"action": "setuid"},
+            {"action": "getgid"},
+            {"action": "setgid"}
+        ]
+    }
+    ]
+}

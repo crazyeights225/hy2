@@ -1,0 +1,18 @@
+{
+    "name": "CWE 125: Out-of-Bounds Read",
+    "severity": "high",
+    "notes": "pattern is READ(addr) where addr is controlled by the user, is dynamic",
+    "sequences": [
+        {
+            "model": [
+                {"action": "ALLOCATE", "as": {"size": "n", "fname": "fname", "size.is_invariant": "n.is_invariant"}, "vuln": {"ls": "n.is_invariant", "op": "eq", "rs": false, "explain": "Buffer size set by input"}},
+                {"action": "RET", "as": {"val": "addr", "ret.fname": "returned_from", "vlabel": "rvlabel"}, "cond": [ {"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "first_only", "op": "eq", "rs": true}]}, 
+                {"type": "anti", "action": "FREE", "as": {"1": "eol_addr"}, "cond": [
+                    {"ls": "eol_addr", "op": "eq", "rs": "addr"}
+                ]},
+                {"action": "LOAD", "as": {"ls.lhs": "ptr", "base": "base", "ls.rhs": "offset", "ls.op": "sop", "ls.rhs.is_invariant": "ls.rhs.is_invariant"},"cond": [{"or": [{"ls": "ptr", "op": "like", "rs":"rvlabel"}, {"ls": "base", "op": "eq", "rs": "addr"}]}, {"or": [{"ls": "ls.rhs.is_invariant", "op": "eq", "rs": false}, {"ls": "n.is_invariant", "op": "eq", "rs": false}]}], "vuln": {"ls": "n", "op": "lt", "rs": "offset"}, "explain": "write to buffer at offset > size"}],
+            "confidence": 1,
+            "vtypes": {"val.size": "int", "offset": "int", "n": "int", "n.is_invariant": "bool"}
+        }
+    ]
+}

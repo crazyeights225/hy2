@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav class="crumbs">
+  <a href="/targets">Targets</a><span class="sep">/</span>
+  <a href="/target?name={{ data.target }}">{{ data.target }}</a><span class="sep">/</span>
+  <span>Query model</span>
+</nav>
+<div class="page-head">
+  <div>
+    <h1>Query model</h1>
+    <div class="sub">Inspect the recorded basic blocks for an input example, by function name or by block index.</div>
+  </div>
+</div>
+
+<form class="card" action="/query" style="margin-bottom: 16px;">
+  <input type="hidden" name="name" value="{{ data.target }}">
+  <div class="card-body">
+    <div class="form-grid" style="grid-template-columns: 2fr 1fr 1fr;">
+      <label class="field">
+        <span class="label">Input example</span>
+        <select name="tid" class="select">
+          {% for t in data.input_examples %}
+          <option value="{{ t }}" {{ 'selected' if data.input_example and data.input_example.startswith(t.replace('.json', '')) }}>{{ t }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span class="label">Function name</span>
+        <input class="input mono" name="query" placeholder="e.g. sym.foo" value="{{ request.args.get('query', '') }}">
+      </label>
+      <label class="field">
+        <span class="label">Starting block</span>
+        <input class="input mono" name="bid" type="number" min="0" placeholder="0" value="{{ request.args.get('bid', '') }}">
+        <span class="help">Shows 50 blocks.</span>
+      </label>
+    </div>
+    <div class="form-actions" style="padding-top: 0;"><button class="btn btn-primary" type="submit"><i class="bi bi-search"></i>Run query</button></div>
+  </div>
+</form>
+
+{% if data.status %}
+<div class="alert alert-err"><i class="bi bi-exclamation-circle"></i><div>{{ data.status }}</div></div>
+{% endif %}
+{% if data.body is defined %}
+<section class="card">
+  <div class="card-head"><h2>Blocks</h2></div>
+  <div class="card-body">
+    {% if data.body %}<pre class="codeblock">{{ data.body|safe }}</pre>
+    {% else %}<span class="muted">No blocks matched.</span>{% endif %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

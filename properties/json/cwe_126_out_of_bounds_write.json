@@ -1,0 +1,98 @@
+{
+  "name": "CWE 126: Out of Bounds Write",
+  "severity": "High",
+  "sequences": [
+    {
+      "model": [
+        {
+          "action": "ALLOCATE",
+          "attributes": {
+            "size": "n",
+            "fname": "fname",
+            "size.is_invariant": "n.is_constant"
+          }
+        },
+        {
+          "action": "RET",
+          "attributes": {
+            "val": "addr",
+            "ret.fname": "returned_from",
+            "label": "addr.label"
+          },
+          "cond": [
+            {
+              "ls": "returned_from",
+              "op": "eq",
+              "rs": "fname"
+            }
+          ]
+        },
+        {
+          "type": "anti",
+          "action": "FREE",
+          "attributes": {
+            "ptr": "eol_addr"
+          },
+          "cond": [
+            {
+              "ls": "eol_addr",
+              "op": "eq",
+              "rs": "addr"
+            }
+          ]
+        },
+        {
+          "action": "STORE",
+          "attributes": {
+            "ls.lhs": "ptr",
+            "base": "base",
+            "ls.rhs": "offset",
+            "ls.op": "sop",
+            "ls.rs.is_constant": "ls.rs.is_constant"
+          },
+          "cond": [
+            {
+              "and": [
+                {
+                  "or": [
+                    {
+                      "ls": "ptr",
+                      "op": "like",
+                      "rs": "addr.label"
+                    },
+                    {
+                      "ls": "base",
+                      "op": "eq",
+                      "rs": "addr"
+                    }
+                  ]
+                },
+                {
+                  "or": [
+                    {
+                      "ls": "ls.rs.is_constant",
+                      "op": "eq",
+                      "rs": "false"
+                    },
+                    {
+                      "ls": "n.is_constant",
+                      "op": "eq",
+                      "rs": "false"
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "vuln": [
+            {
+              "ls": "n",
+              "op": "lte",
+              "rs": "offset"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

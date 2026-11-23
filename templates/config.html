@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% set c = target.config %}
+{% macro select(name, value, options) -%}
+<select name="{{ name }}" class="select">
+  {% for o in options %}<option value="{{ o }}" {{ 'selected' if o == value }}>{{ o }}</option>{% endfor %}
+</select>
+{%- endmacro %}
+{% macro lines(v) -%}{{ v|join('\n') if v is iterable and v is not string else (v or '') }}{%- endmacro %}
+
+{% block content %}
+<nav class="crumbs">
+  <a href="/targets">Targets</a><span class="sep">/</span>
+  <a href="/target?name={{ target.name }}">{{ target.name }}</a><span class="sep">/</span>
+  <span>Configure</span>
+</nav>
+<div class="page-head">
+  <div><h1>Configure {{ target.name }}</h1></div>
+  <div class="row">
+    <button class="btn" type="button" onclick="queueTask('symbol resolution')"><i class="bi bi-diagram-3"></i>Queue symbol resolution</button>
+    <button class="btn" type="button" onclick="queueAllTasks()" title="symbol resolution, trace, model, check"><i class="bi bi-list-check"></i>Queue all tasks</button>
+    <a class="btn" href="/target?name={{ target.name }}">Done</a>
+  </div>
+</div>
+
+<div class="tabs" data-tabs role="tablist">
+  <button data-tab="general" role="tab">General</button>
+  <button data-tab="inputs" role="tab">Input examples <span class="badge" style="margin-left: 4px;">{{ target.test_cases|length }}</span></button>
+  <button data-tab="properties" role="tab">Properties <span class="badge" style="margin-left: 4px;">{{ c.properties|selectattr('selected', 'equalto', 'True')|list|length }}</span></button>
+</div>
+
+{# ---------------- General ---------------- #}
+<section data-pane="general">
+  <form class="card" action="/api/target/update" method="post">
+    <div class="card-body">
+      <div class="form-grid">
+        <label class="field">
+          <span class="label">Executable name</span>
+          <input class="input" name="name" value="{{ target.name }}" readonly>
+        </label>
+        <label class="field">
+          <span class="label">Target path</span>
+          <input class="input mono" name="targetpath" placeholder="e.g. /bin/ls" value="{{ c.target_path }}">
+        </label>
+        <label class="field"><span class="label">Architecture</span>{{ select('arch', c.arch, ['x86_64', 'i386']) }}</label>
+        <label class="field"><span class="label">Guest image</span>{{ select('imagetype', c.image_type, ['generic', 'custom']) }}</label>
+        <label class="field"><span class="label">Binary source</span>{{ select('bintype', c.bin_type, ['extern', 'built-in']) }}</label>
+        <label class="field"><span class="label">Target type</span>{{ select('targettype', c.target_type or c.type, ['prog', 'lib']) }}</label>
+        <label class="field full">
+          <span class="label">Target pages</span>
+          <input class="input mono" name="targetpages" value="{{ c.target_pages|join(',') if c.target_pages is not string else c.target_pages }}">
+          <span class="help">Comma-separated names of the modules to analyze.</span>
+        </label>
+        <label class="field">
+          <span class="label">Pre-conditions</span>
+          <textarea class="textarea" name="preconditions" rows="3">{{ lines(c.preconditions) }}</textarea>
+          <span class="help">One per line.</span>
+        </label>
+        <label class="field">
+          <span class="label">Post-conditions</span>
+          <textarea class="textarea" name="postconditions" rows="3">{{ lines(c.postconditions) }}</textarea>
+          <span class="help">One per line.</span>
+        </label>
+      </div>
+    </div>
+    <div class="card-head" style="border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end;">
+      <button class="btn btn-primary" type="submit">Save changes</button>
+    </div>
+  </form>
+</section>
+
+{# ---------------- Input examples ---------------- #}
+<section data-pane="inputs" hidden>
+  <div class="split-left">
+    <div class="card">
+      <ul class="list" id="tc-list">
+        {% for t in target.test_cases %}
+        <li><button type="button" data-tc="{{ t }}"><i class="bi bi-terminal"></i><span class="truncate mono small">{{ t.replace(target.name ~ '_tc_', '').replace('.json', '')[:12] }}</span><i class="bi bi-chevron-right chev"></i></button></li>
+        {% endfor %}
+        <li><button type="button" id="tc-new" style="color: var(--accent);"><i class="bi bi-plus-lg"></i>New input example</button></li>
+      </ul>
+    </div>
+
+    <div>
+      <form class="card" id="add-form" action="/add" method="post" {% if target.test_cases %}hidden{% endif %}>
+        <div class="card-head"><h2>New input example</h2></div>
+        <div class="card-body">
+          <input type="hidden" name="target" value="{{ target.name }}">
+          <label class="field" style="margin: 0;">
+            <span class="label">Commands</span>
+            <textarea class="textarea" name="cmd" rows="8" placeholder='{"cmd": "..."}'></textarea>
+            <span class="help">A JSON object, a JSON list, or one JSON object per line.</span>
+          </label>
+        </div>
+        <div class="card-head" style="border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end;">
+          <button class="btn btn-primary" type="submit">Save</button>
+        </div>
+      </form>
+
+      <div class="card" id="view-form" hidden>
+        <div class="card-head">
+          <h2 class="mono small" id="tc-name"></h2>
+          <button class="btn btn-primary btn-sm" type="button" onclick="queueTask(currentTc)"><i class="bi bi-play-fill"></i>Add to queue</button>
+        </div>
+        <div class="card-body"><pre class="codeblock" id="tc-body"></pre></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ---------------- Properties ---------------- #}
+<section data-pane="properties" hidden>
+  <form class="card" action="/api/target/properties" method="post">
+    <input type="hidden" name="target" value="{{ target.name }}">
+    <div class="card-head">
+      <h2>Properties to check</h2>
+      <div class="row">
+        <button class="btn btn-sm btn-ghost" type="button" onclick="document.querySelectorAll('#props input').forEach(function(i){i.checked=true})">Select all</button>
+        <button class="btn btn-sm btn-ghost" type="button" onclick="document.querySelectorAll('#props input').forEach(function(i){i.checked=false})">None</button>
+      </div>
+    </div>
+    <ul class="check-list" id="props">
+      {% for p in c.properties %}
+      <li><label><input type="checkbox" name="{{ p.id }}" {{ 'checked' if p.selected == 'True' }}><span>{{ p.name }}</span><span class="muted small mono" style="margin-left: auto;">{{ p.id }}</span></label></li>
+      {% endfor %}
+    </ul>
+    <div class="card-head" style="border-top: 1px solid var(--border); border-bottom: 0; justify-content: flex-end;">
+      <button class="btn btn-primary" type="submit">Save properties</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var targetName = {{ target.name|tojson }};
+var currentTc = null;
+
+function queueAllTasks() {
+  hy2Get('/api/queue/push_target', { name: targetName })
+    .then(function (r) { hy2Toast(r.status || 'Queued'); })
+    .catch(function () { hy2Toast('Failed to add to queue'); });
+}
+
+function queueTask(task) {
+  hy2Get('/api/queue/push', { name: targetName, id: task })
+    .then(function (r) { hy2Toast(r.status || 'Queued'); })
+    .catch(function () { hy2Toast('Failed to add to queue'); });
+}
+
+document.getElementById('tc-list').addEventListener('click', function (e) {
+  var b = e.target.closest('button');
+  if (!b) return;
+  document.querySelectorAll('#tc-list button').forEach(function (x) { x.classList.toggle('active', x === b); });
+  if (b.id === 'tc-new') {
+    document.getElementById('view-form').hidden = true;
+    document.getElementById('add-form').hidden = false;
+    return;
+  }
+  currentTc = b.dataset.tc;
+  hy2Get('/api/testcase', { name: targetName, id: currentTc }).then(function (r) {
+    document.getElementById('tc-name').textContent = currentTc;
+    document.getElementById('tc-body').textContent = r.data.cmds;
+  }).catch(function () {
+    document.getElementById('tc-body').textContent = 'Error loading input example.';
+  }).then(function () {
+    document.getElementById('add-form').hidden = true;
+    document.getElementById('view-form').hidden = false;
+  });
+});
+var first = document.querySelector('#tc-list [data-tc]');
+if (first) first.click();
+</script>
+{% endblock %}

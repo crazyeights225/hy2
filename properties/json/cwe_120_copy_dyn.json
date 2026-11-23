@@ -1,0 +1,40 @@
+{
+    "name": "CWE 120: Insecure Copy",
+    "severity": "high",
+    "notes": "not exhuastive",
+    "sequences": [
+        {
+            "model": [
+                {"action": "ALLOCATE", "as": {"size": "n", "fname": "fname", "size.is_invariant": "n.is_invariant"}, "vuln": {"ls": "n.is_invariant", "op": "eq", "rs": false, "explain": "Buffer size set by input"}},
+                {"action": "RET", "as": {"addr": "addr", "ret.fname": "returned_from", "val": "val", "vlabel": "vlabel"}, "cond": [ {"ls": "returned_from", "op": "eq", "rs": "fname"}, {"ls": "discrete_time", "op": "lte", "rs": 3}]},
+                {"action": "ALLOCATE", "as": {"size": "n0", "fname": "fname0", "size.is_invariant": "n.is_invariant0"}, "vuln": {"ls": "n.is_invariant", "op": "eq", "rs": false, "explain": "Buffer size set by input"}},
+                {"action": "RET", "as": {"addr": "addr0", "ret.fname": "returned_from0", "val": "val0", "vlabel": "vlabel0"}, "cond": [ {"ls": "returned_from0", "op": "eq", "rs": "fname0"}, {"ls": "discrete_time", "op": "lte", "rs": 3}]},  
+                {"type": "anti", "action": "FREE", "as": {"1": "eol_addr"}, "cond": [
+                    {"ls": "eol_addr", "op": "eq", "rs": "val"}
+                ]},
+                {
+                    "action": "COPY",
+                    "as": {
+                        "src": "src",
+                        "dest": "dest"
+                    },
+                    "cond": [
+                        {"or": [{
+                            "ls": "val",
+                            "op": "eq",
+                            "rs": "src"
+                        }, {"ls": "val", "op": "eq", "rs": "dest"}]},
+                        {"or": [{
+                            "ls": "val0",
+                            "op": "eq",
+                            "rs": "src"
+                        }, {"ls": "val0", "op": "eq", "rs": "dest"}]}
+                    ]
+                }
+                
+        ],
+            "confidence": 1,
+            "vtypes": {"n.is_invariant": "bool"}
+        }
+    ]
+}

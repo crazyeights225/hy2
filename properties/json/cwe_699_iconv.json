@@ -1,0 +1,127 @@
+{
+    "name": "CWE 699",
+    "severity": "high",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "STORE",
+                    "as": {
+                        "rs.ls.dsource": "rs.ls.dsource",
+                        "rs.op": "rs.op",
+                        "rs.rs": "rs.rs",
+                        "rs.rs.is_invariant": "rs.rs.is_invariant",
+                        "label": "n.label"
+                    },
+                    "cond": [
+                        {
+                            "ls": "rs.ls.dsource",
+                            "op": "eq",
+                            "rs": "const.strlen"
+                        },
+                        {
+                            "or": [
+                                {
+                                    "and": [
+                                        {
+                                            "ls": "rs.op",
+                                            "op": "eq",
+                                            "rs": "const.Mul"
+                                        },
+                                        {
+                                            "ls": "rs.rs",
+                                            "op": "lt",
+                                            "rs": 4
+                                        }
+                                    ]
+                                },
+                                {
+                                    "and": [
+                                        {
+                                            "ls": "rs.op",
+                                            "op": "eq",
+                                            "rs": "const.Shl"
+                                        },
+                                        {
+                                            "ls": "rs.rs",
+                                            "op": "lt",
+                                            "rs": 3
+                                        }
+                                    ]
+                                },
+                                {
+                                    "and": [
+                                        {
+                                            "ls": "rs.op",
+                                            "op": "in",
+                                            "rs": [
+                                                "Shl",
+                                                "Mul"
+                                            ]
+                                        },
+                                        {
+                                            "ls": "rs.rs.is_invariant",
+                                            "op": "eq",
+                                            "rs": true
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action": "ALLOCATE",
+                    "as": {
+                        "fname": "fname",
+                        "size": "size",
+                        "size.label": "size.label"
+                    },
+                    "cond": [
+                        {
+                            "ls": "size.label",
+                            "op": "like",
+                            "rs": "n.label"
+                        }
+                    ]
+                },
+                {
+                    "action": "RET",
+                    "as": {
+                        "ret.fname": "returned_from",
+                        "addr": "addr",
+                        "label": "var.label"
+                    },
+                    "cond": [
+                        {
+                            "ls": "discrete_time",
+                            "op": "lt",
+                            "rs": 3
+                        },
+                        {
+                            "ls": "returned_from",
+                            "op": "eq",
+                            "rs": "fname"
+                        }
+                    ]
+                },
+                {
+                    "action": "ENCODECONV",
+                    "as": {
+                        "dest": "dest.buf",
+                        "dest.label": "dest.label"
+                    },
+                    "cond": [
+                        {"or": [{
+                            "ls": "dest.buf",
+                            "op": "eq",
+                            "rs": "addr"},
+                            {"ls": "dest.label", "op": "like", "rs": "var.label"}
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

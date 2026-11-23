@@ -1,0 +1,15 @@
+{
+    "name": "CWE 787: Out-of-Bounds Write Static",
+    "severity": "high",
+    "sequences": [
+        {
+            "model": [
+                {"action": "VAR*", "as": {"dtype.size": "val.size", "label": "label"}},
+                {"action": "STORE", "as": {"label": "var.label", "ls.rs": "offset", "ls.rs.is_invariant": "offset.is_invariant"},"cond": [
+                    {"ls": "var.label", "op": "like", "rs": "label"}, {"ls": "offset.is_invariant", "op": "eq", "rs": false}
+                ], "vuln": {"ls": "val.size", "op": "lt", "rs": "offset"}, "explain": "write to buffer at offset > size"}],
+            "confidence": 1,
+            "vtypes": {"val.size": "int", "offset": "int", "n": "int", "n.is_invariant": "bool"}
+        }
+    ]
+}

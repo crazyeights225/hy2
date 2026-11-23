@@ -1,0 +1,94 @@
+{
+    "name": "CWE 476: Null Pointer Dereference - STDLIB",
+    "severity": "high",
+    "group_by": "origin",
+    "comments": "not exhaustive",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "NULL_RETURN",
+                    "as": {"fname": "fname"}
+                },
+                {"type": "anti", "action": "COND", "label": "a0", "as": {
+                    "dsource": "cond0.dsource",
+                    "op": "cond0.op",
+                    "rs.val": "rs0.val",
+                    "lsv": "lsv0"
+                }, "cond": [{"or": [
+                    {"ls": "cond0.dsource", "op": "eq", "rs": "returned_from"}, {"ls": "lsv0", "op": "eq", "rs": "ptr"}]}, {"ls": "rs0.val", "op": "eq", "rs": 0}, {"ls": "cond0.op", "op": "eq", "rs": "const.CmpEQ"}
+                  ]
+                },
+                {
+                    "action": "RET",
+                    "as": {
+                        "val": "ptr",
+                        "ret.fname": "returned_from",
+                        "var.name": "var.var",
+                        "label": "ret.label"
+                    },
+                    "cond": [
+                        {
+                            "ls": "returned_from",
+                            "op": "eq",
+                            "rs": "fname"
+                        },
+                        {
+                            "ls": "discrete_time",
+                            "op": "lte",
+                            "rs": 2
+                        }
+                    ]
+                },
+                {
+                    "type": "anti",
+                    "action": "COND",
+                    "label": "a1",
+                    "as": {
+                        "ls.var": "ls.var",
+                        "lsv": "lsv",
+                        "rs.val": "rs.val",
+                        "dsource": "cond.dsource",
+                        "op": "cond.op"
+                    }, "cond": [{"or": [ 
+                        {"ls": "cond.dsource", "op": "eq", "rs": "returned_from"},
+                        {"ls": "lsv", "op": "eq", "rs": "ptr"}
+                        ]}, {"ls": "rs.val", "op": "eq", "rs": 0}, {"ls": "cond.op", "op": "eq", "rs": "const.CmpEQ"}
+                    ]
+                },
+                {
+                    "action": "VAR",
+                    "as": {
+                        "val": "ref",
+                        "name": "var.name",
+                        "label": "var.label"
+                    },
+                    "cond": [
+                        {"or": [{
+                            "ls": "ptr",
+                            "op": "eq",
+                            "rs": "ref"
+                        }, {"ls": "var.label", "op": "like", "rs": "ptr.label"}
+                        ]
+                        }
+                    ]
+                },
+                {
+                    "action": "VAR*",
+                    "as": {
+                        "deps": "ldeps"
+                    },
+                    "cond": [
+                        {
+                            "ls": "var.name",
+                            "op": "in",
+                            "rs": "ldeps"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1,
+            "anti_expr": {"ls": "a0", "op": "or", "rs": "a1"}
+        }
+    ]
+}

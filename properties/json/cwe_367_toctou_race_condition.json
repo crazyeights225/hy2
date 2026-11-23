@@ -1,0 +1,70 @@
+{
+    "name": "CWE 367: Time-of-Check-Time-of-Use Race Condition",
+    "severity": "high",
+    "notes": "Not Exhaustive, Missing Variant 2, and Exceptions",
+    "sequences": [
+        {
+            "model": [
+                {"action": "ACCESS", "as": {"filename": "check_file"}},
+                {"action": "OPEN", "as": {"filename": "use_file"}, "cond": [{"ls": "check_file", "op": "eq", "rs": "use_file"}]}
+            ]
+        },
+        {
+            "model": [
+                {
+                    "action": "OPEN",
+                    "as": {
+                        "filename": "fname"
+                    }
+                },
+                {
+                    "action": "RET",
+                    "as": {
+                        "val": "fd"
+                    },
+                    "cond": [{
+                        "ls": "discrete_time",
+                        "op": "lte",
+                        "rs": 2
+                    }]
+                },
+                {
+                    "action": "ACCESS",
+                    "as": {
+                        "0": "fobj"
+                    },
+                    "cond": [
+                        {
+                            "or": [
+                                {
+                                    "ls": "fobj",
+                                    "op": "eq",
+                                    "rs": "fd"
+                                },
+                                {
+                                    "ls": "fobj",
+                                    "op": "eq",
+                                    "rs": "fname"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "action": "FACCESS",
+                    "as": {
+                        "fp": "fp"
+                    },
+                    "cond": [
+                        {
+                            "ls": "fp",
+                            "op": "eq",
+                            "rs": "fd"
+                        }
+                    ]
+                }
+            ],
+            "confidence": 1
+        }
+    ]
+}

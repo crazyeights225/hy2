@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block content %}
+<nav class="crumbs">
+  <a href="/targets">Targets</a><span class="sep">/</span>
+  <a href="/target?name={{ data.target }}">{{ data.target }}</a><span class="sep">/</span>
+  <a href="/result?name={{ data.target }}&id={{ data.vid }}" class="mono">{{ data.vid[:8] }}</a><span class="sep">/</span>
+  <span>Source</span>
+</nav>
+<div class="page-head">
+  <div>
+    <h1>Source view</h1>
+    <div class="sub">Every source line this result matched, with surrounding context.</div>
+  </div>
+  <a class="btn" href="/result?name={{ data.target }}&id={{ data.vid }}"><i class="bi bi-arrow-left"></i>Back to result</a>
+</div>
+
+{% for f in data.files %}
+<section class="card">
+  <div class="card-head">
+    <div class="src-file"><i class="bi bi-file-earmark-code"></i>{{ f.file }}</div>
+    <span class="hint">line{{ 's' if f.marks|length != 1 }} {{ f.marks|join(', ') }}</span>
+  </div>
+  <div class="card-body">
+    {% if f.found %}
+    <div class="src" style="margin-top: 0;">
+      {% for hunk in f.hunks %}
+        {% if not loop.first %}<div class="gap">⋯</div>{% endif %}
+        {% for ln in hunk %}
+        <div class="ln {{ 'hit' if ln.marks }}"><span class="no">{{ ln.no }}</span><span class="tx">{{ ln.text }}</span><span class="mk">{% for m in ln.marks %}<span class="event-tag">{{ m }}</span>{% endfor %}</span></div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warn" style="margin: 0;"><i class="bi bi-exclamation-triangle"></i><div>Source file not found under the target's source directory.</div></div>
+    {% endif %}
+  </div>
+</section>
+{% else %}
+<div class="card"><div class="empty">
+  <i class="bi bi-file-earmark-x"></i>
+  <h3>No source available</h3>
+  <p>{% if not data.has_root %}Set <code>src_path</code> in the target profile or add sources under <code>targets/{{ data.target }}/dbg/src</code>.{% else %}This result has no source-level locations.{% endif %}</p>
+</div></div>
+{% endfor %}
+{% endblock %}

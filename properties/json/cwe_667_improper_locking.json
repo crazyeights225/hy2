@@ -1,0 +1,45 @@
+{
+    "name": "CWE 667: Improper Locking",
+    "severity": "medium",
+    "sequences": [
+        {
+            "model": [
+                {
+                    "action": "__pthread_mutex_init",
+                    "as": {
+                        "0": "addr"
+                    }
+                },
+                {
+                    "action": "LOAD",
+                    "as": {
+                        "addr": "vaddr"
+                    },
+                    "cond": [
+                        {
+                            "ls": "addr",
+                            "op": "eq",
+                            "rs": "vaddr"
+                        }
+                    ]
+                },
+                {
+                    "type": "anti",
+                    "action": "'__pthread_mutex_unlock",
+                    "as": {
+                        "0": "daddr"
+                    },
+                    "cond": [
+                        {
+                            "ls": "addr",
+                            "op": "eq",
+                            "rs": "daddr"
+                        }
+                    ]
+                },
+                {"action": "FINAL", "as": {}}
+            ],
+            "confidence": 1
+        }
+    ]
+}

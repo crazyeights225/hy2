@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+{% set t = test_case %}
+{% set s = t.stats %}
+{% block content %}
+<nav class="crumbs"><a href="/targets">Targets</a><span class="sep">/</span><span>{{ t.name }}</span></nav>
+
+<div class="page-head">
+  <div>
+    <div class="row">
+      <h1>{{ t.name }}</h1>
+      {% if t.has_results %}<span class="badge b-green"><i class="bi bi-check2"></i>Analyzed</span>{% endif %}
+      {% if t.is_modeled %}<span class="badge b-accent">Modeled</span>{% endif %}
+      {% if t.symbols %}<span class="badge b-outline">Symbols</span>{% endif %}
+    </div>
+    <div class="sub">
+      <code>{{ t.target }}</code> · {{ t.arch }} · {{ t.image_type }} image ·
+      {{ t.no_input_examples }} input example{{ 's' if t.no_input_examples != 1 }} ·
+      {{ t.no_trace_files }} saved trace{{ 's' if t.no_trace_files != 1 }}
+    </div>
+  </div>
+  <div class="row">
+    <a class="btn" href="/query?name={{ t.name }}"><i class="bi bi-search"></i>Query model</a>
+    <a class="btn btn-primary" href="/config?name={{ t.name }}"><i class="bi bi-sliders"></i>Configure</a>
+  </div>
+</div>
+
+{% set total = s.no_results %}
+<div class="grid grid-4" style="margin-bottom: 20px;">
+  <div class="card stat clickable" data-filter="all">
+    <div class="label">All findings</div>
+    <div class="value">{{ total }}{% if s.no_paths and s.no_paths != total %} <span class="paths-note">from {{ s.no_paths }} matches</span>{% endif %}</div>
+    {% if total %}
+    <div class="bar" aria-hidden="true">
+      <span class="violation" style="width: {{ 100 * s.no_results_sat / total }}%"></span>
+      <span class="review" style="width: {{ 100 * s.no_results_review / total }}%"></span>
+      <span class="infeasible" style="width: {{ 100 * s.no_results_unsat / total }}%"></span>
+    </div>
+    {% endif %}
+  </div>
+  <div class="card stat clickable" data-filter="violation" title="Satisfiable: the violation is feasible">
+    <div class="label"><span class="vdot violation"></span>Violations</div>
+    <div class="value">{{ s.no_results_sat }}</div>
+  </div>
+  <div class="card stat clickable" data-filter="review" title="Solver couldn't decide">
+    <div class="label"><span class="vdot review"></span>Needs review</div>
+    <div class="value">{{ s.no_results_review }}</div>
+  </div>
+  <div class="card stat clickable" data-filter="infeasible" title="Unsatisfiable: ruled out by the solver">
+    <div class="label"><span class="vdot infeasible"></span>Infeasible</div>
+    <div class="value">{{ s.no_results_unsat }}</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head" style="flex-wrap: wrap;">
+    <h2>Results</h2>
+    <div class="row" style="gap: 10px;">
+      <div class="segmented" role="tablist" aria-label="Filter by verdict">
+        <button data-filter="all" class="active">All</button>
+        <button data-filter="violation"><span class="vdot violation"></span>Violations</button>
+        <button data-filter="review"><span class="vdot review"></span>Review</button>
+        <button data-filter="infeasible"><span class="vdot infeasible"></span>Infeasible</button>
+      </div>
+      <label class="search" style="width: 260px; max-width: 100%;">
+        <i class="bi bi-search"></i>
+        <input id="result-search" class="input" type="search" placeholder="Filter by file, function, code…  ( / )" autocomplete="off">
+      </label>
+    </div>
+  </div>
+
+  {% if t.hidden_infeasible %}
+  <div class="alert" style="margin: 12px 18px 0;">
+    <i class="bi bi-eye-slash"></i>
+    <div>{{ s.no_results_unsat }} infeasible result{{ 's' if s.no_results_unsat != 1 }} hidden. <a href="/settings">Change in settings</a></div>
+  </div>
+  {% endif %}
+
+  {% set gs = t.grouping %}
+  {% if gs and gs.hidden > 0 %}
+  <details class="dupsum">
+    <summary>
+      <i class="bi bi-chevron-right caret"></i>
+      <i class="bi bi-layers"></i>
+      <span><strong>{{ gs.hidden }}</strong> duplicate match{{ 'es' if gs.hidden != 1 }} hidden: {{ gs.matches }} matches grouped into {{ gs.findings }} finding{{ 's' if gs.findings != 1 }}</span>
+      <span class="hint">Show grouping</span>
+    </summary>
+    <div class="dupsum-body">
+      <p class="small text-2 dupsum-rule">
+        Matches of the same property that end at the same instruction (the sink, e.g. the out-of-bounds write) are
+        treated as duplicates. Properties with <code>"group_by": "origin"</code> instead merge matches that start at the
+        same instruction (e.g. one unchecked allocation used in many places). The list below shows one representative
+        per finding (a feasible match with a fully resolved trace, marked <i class="bi bi-star-fill"></i>); the other
+        matches differ only in where they come from or lead to (a different allocation, use, path or input) and are
+        hidden behind it.
+      </p>
+      {% for g in gs.groups %}
+      <details class="dupgroup">
+        <summary>
+          <i class="bi bi-chevron-right caret"></i>
+          <span class="dg-title">{{ g.name }}</span>
+          <span class="mono dg-sink" title="Shared {{ g.anchor_kind }}">{% if g.anchor %}{% if g.anchor.file %}{{ g.anchor.file }}:{{ g.anchor.line }}{% else %}{{ g.anchor.addr }}{% endif %}{% if g.anchor.func %} · {{ g.anchor.func }}{% endif %}{% endif %}</span>
+          <span class="dg-stats small text-2">
+            {{ g.count }} matches → 1 · {{ g.count - 1 }} hidden · {{ g.distinct }} distinct {{ g.other_kind }}{{ 's' if g.distinct != 1 }}
+            {% if g.verdicts.infeasible or g.verdicts.review %} · {{ g.verdicts.violation }} sat / {{ g.verdicts.review }} review / {{ g.verdicts.infeasible }} unsat{% endif %}
+          </span>
+        </summary>
+        <div class="dg-body">
+          <a class="dg-row rep" href="/result?name={{ t.name }}&id={{ g.rep_id }}">
+            <i class="bi bi-star-fill" title="Representative (shown in the results list)"></i>
+            <span class="mono truncate">{% set o = g.rep_loc %}{% if o %}{% if o.file %}{{ o.file }}:{{ o.line }}{% else %}{{ o.addr }}{% endif %}{% if o.func %} · {{ o.func }}{% endif %}{% else %}<span class="muted">unknown {{ g.other_kind }}</span>{% endif %}</span>
+            <span class="mono dg-id">{{ g.rep_id[:8] }}</span>
+            <span class="small text-2">shown</span>
+          </a>
+          {% for w in g.hidden %}
+          {% set o = w.loc %}
+          <a class="dg-row" href="/result?name={{ t.name }}&id={{ w.id }}" {% if loop.index > 30 %}data-dg-overflow hidden{% endif %}>
+            <span class="vdot {{ w.verdict }}" title="{{ w.conclusion or 'undecided' }}"></span>
+            <span class="mono truncate">{% if o %}{% if o.file %}{{ o.file }}:{{ o.line }}{% else %}{{ o.addr }}{% endif %}{% if o.func %} · {{ o.func }}{% endif %}{% else %}<span class="muted">unknown {{ g.other_kind }}</span>{% endif %}</span>
+            <span class="mono dg-id">{{ w.id[:8] }}</span>
+            <span class="small text-2 truncate mono" title="Inputs: {{ w.test_cases }}">{{ w.inputs_short }}</span>
+          </a>
+          {% endfor %}
+          {% if g.hidden|length > 30 %}
+          <div class="dg-more"><button class="btn btn-sm" type="button" onclick="this.closest('.dg-body').querySelectorAll('[data-dg-overflow]').forEach(function (e) { e.hidden = false; }); this.parentNode.remove();">Show all {{ g.hidden|length }} hidden</button></div>
+          {% endif %}
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </details>
+  {% endif %}
+
+  <div class="card-body flush" id="results">
+    {% for g in t.result_groups %}
+    <details class="rgroup" {% if loop.index <= 3 %}open{% endif %}>
+      <summary>
+        <i class="bi bi-chevron-right caret"></i>
+        <span class="title">{{ g.name }}</span>
+        <span class="badge sev-{{ g.severity }}">{{ g.severity }}</span>
+        <span class="tally">
+          {% if g.counts.violation %}<span class="badge v-violation" data-tally="violation"><span class="dot"></span>{{ g.counts.violation }}</span>{% endif %}
+          {% if g.counts.review %}<span class="badge v-review" data-tally="review"><span class="dot"></span>{{ g.counts.review }}</span>{% endif %}
+          {% if g.counts.infeasible %}<span class="badge v-infeasible" data-tally="infeasible"><span class="dot"></span>{{ g.counts.infeasible }}</span>{% endif %}
+        </span>
+      </summary>
+      <div class="rrows">
+      {% for r in g.results %}
+        {% set loc = r.location %}
+        <a class="rrow" href="/result?name={{ t.name }}&id={{ r.id }}" data-verdict="{{ r.verdict }}"
+           data-search="{{ (loc.file ~ ' ' ~ loc.func ~ ' ' ~ loc.code ~ ' ' ~ r.id ~ ' ' ~ g.name) if loc else (r.id ~ ' ' ~ g.name) }}"
+           {% if loop.index > 50 %}data-overflow{% endif %}>
+          <span class="vdot {{ r.verdict }}" title="{{ r.conclusion or 'undecided' }}"></span>
+          <span class="vlabel">{{ {'violation': 'Violation', 'infeasible': 'Infeasible', 'review': 'Needs review'}[r.verdict] }}</span>
+          <span class="where">
+            {% if loc %}
+              <div class="loc truncate">
+                {% if loc.file %}{{ loc.file }}{% if loc.line %}:{{ loc.line }}{% endif %}{% endif %}
+                {% if loc.func %}<span class="fn">{{ ' · ' if loc.file }}{{ loc.func }}</span>{% endif %}
+              </div>
+              {% if loc.code %}<div class="code">{{ loc.code }}</div>{% endif %}
+            {% else %}
+              <div class="loc muted">No source location</div>
+            {% endif %}
+          </span>
+          <span class="rid">{% if r.count > 1 %}<span class="paths" title="{{ r.count }} matches reach this location">{{ r.count }} paths</span>{% endif %}{{ r.id[:8] }}</span>
+        </a>
+      {% endfor %}
+      {% if g.results|length > 50 %}
+        <div class="more-row"><button class="btn btn-sm" data-show-all>Show all {{ g.results|length }}</button></div>
+      {% endif %}
+      </div>
+    </details>
+    {% else %}
+    <div class="empty">
+      <i class="bi bi-inbox"></i>
+      <h3>No results yet</h3>
+      <p>Add an input example and queue a run from <a href="/config?name={{ t.name }}#inputs">Configure</a>.</p>
+    </div>
+    {% endfor %}
+    <div class="empty" id="no-match" hidden>
+      <i class="bi bi-funnel"></i>
+      <h3>No matching results</h3>
+      <p>Try a different filter or search.</p>
+    </div>
+  </div>
+</div>
+
+<details class="card collapsible" style="margin-top: 16px;">
+  <summary class="card-head" style="border-bottom: 0;">
+    <h2 class="row"><i class="bi bi-chevron-right caret"></i>Run diagnostics</h2>
+    {% set rec = s.runs_list|selectattr('recorded')|list %}
+    <span class="hint">{{ s.runs_list|length }} trace run{{ 's' if s.runs_list|length != 1 }} · {{ '{:,}'.format(s.no_blocks or 0) }} blocks · latency &amp; errors</span>
+  </summary>
+  <div class="card-body" style="border-top: 1px solid var(--border);">
+    {% if not s.runs_list %}
+    <p class="muted small" style="margin: 0;">No trace runs yet. Queue a trace from <a href="/config?name={{ t.name }}">Configure</a>; each replay records its blocks, timings and errors here.</p>
+    {% else %}
+    <div class="grid grid-2">
+      <div>
+        <div class="section-title">Latency{% if rec|length > 1 %} <span class="muted small">(total over {{ rec|length }} runs)</span>{% endif %}</div>
+        {% if rec %}
+        <table class="kv">
+          {% for k, v in s.latency.items() %}
+          <tr><td>{{ k.replace('_', ' ') }}</td><td class="mono">{{ '%.3f s'|format(v) if v is number else v }}</td></tr>
+          {% endfor %}
+        </table>
+        {% else %}
+        <p class="muted small">Not recorded. These traces ran before run statistics were saved; re-run a trace to record them.</p>
+        {% endif %}
+      </div>
+      <div>
+        <div class="section-title">Errors</div>
+        <pre class="codeblock">{{ s.errors }}</pre>
+      </div>
+    </div>
+    <div class="section-title" style="margin-top: 16px;">Trace runs</div>
+    <div class="table-wrap" style="overflow-x: auto;">
+      <table class="kv" style="width: 100%;">
+        <tr class="muted small"><td>Input example</td><td>Run</td><td>Blocks</td><td>Trace analysis</td><td>Total</td><td>Status</td></tr>
+        {% for r in s.runs_list %}
+        <tr>
+          <td class="mono small" title="{{ r.tc }}">{{ r.short }}</td>
+          <td class="small">{{ r.time }}</td>
+          {% if r.recorded %}
+          <td class="mono">{{ '{:,}'.format(r.no_blocks) }}</td>
+          <td class="mono">{{ '%.2f s'|format(r.trace_analysis) if r.trace_analysis is number else '–' }}</td>
+          <td class="mono">{{ '%.2f s'|format(r.total) if r.total is number else '–' }}</td>
+          <td class="small">{% if r.errors %}<span title="{{ r.errors|join('\n') }}">{{ r.errors|length }} error{{ 's' if r.errors|length != 1 }}</span>{% else %}ok{% endif %}</td>
+          {% else %}
+          <td class="muted">–</td><td class="muted">–</td><td class="muted">–</td><td class="muted small">not recorded</td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+    {% endif %}
+  </div>
+</details>
+
+<div class="footer-hint"><span><kbd>/</kbd> search</span><span><kbd>1</kbd>–<kbd>4</kbd> filter</span></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var rows = Array.prototype.slice.call(document.querySelectorAll('.rrow'));
+  var groups = Array.prototype.slice.call(document.querySelectorAll('.rgroup'));
+  var search = document.getElementById('result-search');
+  var noMatch = document.getElementById('no-match');
+  var filter = 'all';
+  var expanded = new Set();
+
+  function apply() {
+    var q = search.value.trim().toLowerCase();
+    var active = filter !== 'all' || q;
+    var anyVisible = false;
+    groups.forEach(function (g, gi) {
+      var shown = 0, overflowHidden = 0;
+      g.querySelectorAll('.rrow').forEach(function (r) {
+        var ok = (filter === 'all' || r.dataset.verdict === filter) &&
+                 (!q || r.dataset.search.toLowerCase().indexOf(q) >= 0);
+        var capped = ok && !active && r.hasAttribute('data-overflow') && !expanded.has(gi);
+        r.hidden = !ok || capped;
+        if (ok) shown++;
+        if (capped) overflowHidden++;
+        // keep the filter when stepping through results
+        var url = new URL(r.href);
+        if (filter === 'all') url.searchParams.delete('filter'); else url.searchParams.set('filter', filter);
+        r.href = url.pathname + url.search;
+      });
+      var more = g.querySelector('.more-row');
+      if (more) more.hidden = overflowHidden === 0;
+      g.hidden = shown === 0;
+      if (shown && active) g.open = true;
+      anyVisible = anyVisible || shown > 0;
+    });
+    if (noMatch) noMatch.hidden = anyVisible || !rows.length;
+    document.querySelectorAll('[data-filter]').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.filter === filter);
+      b.classList.toggle('selected', b.classList.contains('stat') && b.dataset.filter === filter && filter !== 'all');
+    });
+    try { sessionStorage.setItem('hy2-filter-{{ t.name }}', JSON.stringify({ f: filter, q: search.value })); } catch (e) {}
+  }
+
+  document.querySelectorAll('[data-filter]').forEach(function (b) {
+    b.addEventListener('click', function () { filter = b.dataset.filter; apply(); });
+  });
+  search.addEventListener('input', apply);
+  document.querySelectorAll('[data-show-all]').forEach(function (b) {
+    b.addEventListener('click', function () { expanded.add(groups.indexOf(b.closest('.rgroup'))); apply(); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target.matches('input, textarea, select')) { if (e.key === 'Escape') e.target.blur(); return; }
+    if (e.key === '/') { e.preventDefault(); search.focus(); }
+    var map = { '1': 'all', '2': 'violation', '3': 'review', '4': 'infeasible' };
+    if (map[e.key]) { filter = map[e.key]; apply(); }
+  });
+
+  try {
+    var saved = JSON.parse(sessionStorage.getItem('hy2-filter-{{ t.name }}') || 'null');
+    if (saved) { filter = saved.f || 'all'; search.value = saved.q || ''; }
+  } catch (e) {}
+  apply();
+})();
+</script>
+{% endblock %}

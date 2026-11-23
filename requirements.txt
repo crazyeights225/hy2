@@ -1,0 +1,18 @@
+# Non-Python requirements:
+#   - radare2 5.5.4 (used through r2pipe for symbol resolution; newer versions use different commands)
+#   - graphviz (the `dot` binary, used by the graphviz package to render models)
+#   - pandare: installed natively (Ubuntu <= 20.04) or provided by the docker container,
+#     see docs/docker.md. It is not installed from this file.
+#
+# Last tested with Python 3.14 and: archinfo/pyvex 10.0.7, capstone 5.0.9, colorama 0.4.6,
+# graphviz 0.21, r2pipe 2.1.0, rich 15.0.0, transitions 0.9.3, z3-solver 5.4.1.0
+archinfo
+pyvex
+capstone
+r2pipe
+transitions
+z3-solver
+graphviz
+colorama
+rich
+flask

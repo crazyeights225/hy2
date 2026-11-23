@@ -1,0 +1,21 @@
+{
+    "name": "MTX Unlock without lock",
+    "severity": "low",
+    "property_descr": "Calling pthread_mutex_unlock() with a mutex that the calling thread does not hold will result in undefined behavior.",
+    "sequences": [
+        {
+            "model": [
+                {"action" : "__pthread_mutex_init", "as": {"0": "mtx"}},
+                {"type": "anti", "action": "pthread_mutex_lock", "as": {"0": "lmtx"}, "cond": [{"ls": "lmtx", "op": "eq", "rs": "unmtx"}]},
+                {"action": "__pthread_mutex_unlock", "as": {"0": "unmtx"}, "cond": [{"ls": "unmtx", "op": "eq", "rs": "mtx"}]}
+            ]
+        },
+        {
+            "model": [
+                {"action" : "__pthread_mutex_unlock", "as": {"0": "mtx"}},
+                {"type": "anti", "action": "__pthread_mutex_lock", "as": {"0": "lmtx"}, "cond": [{"ls": "lmtx", "op": "eq", "rs": "unmtx"}]},
+                {"action": "__pthread_mutex_unlock", "as": {"0": "unmtx"}, "cond": [{"ls": "unmtx", "op": "eq", "rs": "mtx"}]}
+            ]
+        }
+    ]
+}
