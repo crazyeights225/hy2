@@ -1,6 +1,8 @@
 sample-rr-snp
 targets/*
+!targets/.gitkeep
 bins/*
+!bins/.gitkeep
 vmem_stream.log
 *-rr-snp
 *-rr-nondet.log
